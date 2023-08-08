@@ -8,8 +8,13 @@ class Composite:
 class User(Composite):
     def __init__(self):
         Composite.__init__(self, "o")
+        self.position.x = 5
+        self.position.y = 5
 
     def get_character(self):
+        return self.character
+    
+    def __str__(self) -> str:
         return self.character 
 
     
@@ -34,9 +39,7 @@ class Map:
         self.users.append(user)
 
     def insert_on_map(self, composite):
-        self.map[composite.position.x][composite.position.y] = composite.get_character()
-
-
+        self.map[composite.position.x][composite.position.y] = composite
 
     def create_map(self, size_x = MAP_SIZE_X, size_y = MAP_SIZE_Y):
         self.size_x = size_x
