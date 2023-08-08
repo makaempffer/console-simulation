@@ -1,4 +1,37 @@
+import os
 from settings import *
+from time import sleep
+
+# new Class of simulation that executes and action/triggered/constant simulation, as in actions_performed, key_pressed, every x time/ticks.
+
+class Simulation:
+    def __init__(self, map):
+        self.sim_time_s = 1 
+        self.is_running = True
+        self.map: Map = map
+    
+    def tick(self):
+        sleep(self.sim_time_s)
+
+    def stop_simulation(self):
+        self.is_running = False
+
+    def get_events(self):
+        pass
+
+    def render(self):
+        os.system('cls||clear')
+        print(str(self.map.get_string_char_map()))
+    
+    def loop(self):
+        while self.is_running:
+            self.get_events()
+            self.render()
+            self.tick()
+        os.system('exit')
+
+
+
 
 class Composite:
     def __init__(self, tile_character: str = "X") -> None:
@@ -25,6 +58,9 @@ class Position2D:
     
     def get_position(self):
         return [self.x, self.y]
+
+    def set_position(self, x: int, y: int):
+        self.x, self.y = x, y
 
 
 class Map:
@@ -73,6 +109,8 @@ def run():
     user = User()
     map.insert_on_map(user)
     print(map.get_string_char_map())
+    sim = Simulation(map)
+    sim.loop()
 
 
 if __name__ == '__main__':
