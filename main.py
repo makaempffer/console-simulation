@@ -1,6 +1,7 @@
-import os
 from settings import *
 from time import sleep
+import os
+# Idea file system for libraries and docs and instant project integration so it makes people reuse their own code and do better docs/code
 
 # new Class of simulation that executes and action/triggered/constant simulation, as in actions_performed, key_pressed, every x time/ticks.
 
@@ -9,6 +10,8 @@ class Simulation:
         self.sim_time_s = 1 
         self.is_running = True
         self.map: Map = map
+        self.action_stack = []
+        self.is_manual: bool = True
     
     def tick(self):
         sleep(self.sim_time_s)
@@ -17,16 +20,33 @@ class Simulation:
         self.is_running = False
 
     def get_events(self):
-        pass
+        if not self.is_manual:
+            return
+        user_input: str = self.get_input().lower()
+        print("[INPUT] - Was:", user_input)
+        if user_input == "exit":
+            self.is_running = False
+
+        if user_input == "in":
+            self.is_manual = not self.is_manual
 
     def render(self):
         os.system('cls||clear')
         print(str(self.map.get_string_char_map()))
-    
+        print("[CONFIG] - MANUAL? ", str(self.is_manual))
+        print("[WASD] - MOVE CURSOR TO\n[R] - SET CURSOR AS RESOURCE AREA\n[H] - SET HOME AREA\n[IN] - SWITCH INPUT NEED\n[EXIT] TYPE EXIT TO CLOSE")
+   
+    def get_input(self) -> str:
+        return input()
+
+    def logic(self):
+        pass
+
     def loop(self):
         while self.is_running:
-            self.get_events()
             self.render()
+            self.get_events()
+            self.logic()
             self.tick()
         os.system('exit')
 
