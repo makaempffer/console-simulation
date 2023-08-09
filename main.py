@@ -12,12 +12,25 @@ class Simulation:
         self.map: Map = map
         self.action_stack = []
         self.is_manual: bool = True
+        self.step_counter: int = 0
     
     def tick(self):
         sleep(self.sim_time_s)
 
+    def sim_logic(self):
+        if self.is_manual == False:
+            self.count_simulation_steps()
+            print("[SIM] - STEPS ->", str(self.step_counter))
+        if self.is_manual == False and self.step_counter >= SIMULATION_DEFAULT_RUNS:
+            self.is_manual = True
+            self.step_counter = 0
+
+
     def stop_simulation(self):
         self.is_running = False
+
+    def count_simulation_steps(self):
+        self.step_counter += 1
 
     def get_events(self):
         if not self.is_manual:
@@ -47,6 +60,7 @@ class Simulation:
             self.render()
             self.get_events()
             self.logic()
+            self.sim_logic()
             self.tick()
         os.system('exit')
 
