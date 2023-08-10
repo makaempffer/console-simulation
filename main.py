@@ -1,8 +1,8 @@
 from settings import *
 from time import sleep
 import os
-# Idea file system for libraries and docs and instant project integration so it makes people reuse their own code and do better docs/code
 
+# Idea file system for libraries and docs and instant project integration so it makes people reuse their own code and do better docs/code
 # new Class of simulation that executes and action/triggered/constant simulation, as in actions_performed, key_pressed, every x time/ticks.
 
 class Simulation:
@@ -13,6 +13,7 @@ class Simulation:
         self.action_stack = []
         self.is_manual: bool = True
         self.step_counter: int = 0
+        self.cursor_pos = Position2D()
     
     def tick(self):
         sleep(self.sim_time_s)
@@ -20,23 +21,26 @@ class Simulation:
     def sim_logic(self):
         if self.is_manual == False:
             self.count_simulation_steps()
-            print("[SIM] - STEPS ->", str(self.step_counter))
+            print("\n[SIM] - STEPS ->", str(self.step_counter))
         if self.is_manual == False and self.step_counter >= SIMULATION_DEFAULT_RUNS:
             self.is_manual = True
             self.step_counter = 0
+
+
 
 
     def stop_simulation(self):
         self.is_running = False
 
     def count_simulation_steps(self):
-        self.step_counter += 1
+        self.step_counter += 1 
 
     def get_events(self):
         if not self.is_manual:
             return
         user_input: str = self.get_input().lower()
-        print("[INPUT] - Was:", user_input)
+        os.system('cls||clear')
+        print("[INPUT] - COMMAND:", user_input)
         if user_input == "exit":
             self.is_running = False
 
@@ -46,10 +50,11 @@ class Simulation:
     def render(self):
         os.system('cls||clear')
         print(str(self.map.get_string_char_map()))
-        print("[CONFIG] - MANUAL? ", str(self.is_manual))
+        print("\n[CONFIG] - MANUAL? ", str(self.is_manual))
         print("[WASD] - MOVE CURSOR TO\n[R] - SET CURSOR AS RESOURCE AREA\n[H] - SET HOME AREA\n[IN] - SWITCH INPUT NEED\n[EXIT] TYPE EXIT TO CLOSE")
    
     def get_input(self) -> str:
+    
         return input()
 
     def logic(self):
@@ -64,13 +69,35 @@ class Simulation:
             self.tick()
         os.system('exit')
 
-
-
-
 class Composite:
     def __init__(self, tile_character: str = "X") -> None:
         self.position = Position2D()
         self.character = tile_character
+        self.is_cursor_selected = False
+        self.stored_character = tile_character
+
+    def set_characted_to_cursor(self):
+        if self.is_cursor_selected:
+            self.stored_character = self.character
+            self.character = "#"
+
+    def set_cursor_to_character(self):
+        if self.is_cursor_selected == False:
+            self.character = self.stored_character
+
+    ### TODO CURSOR HOVER DETECTION AND RESPONSE
+
+    def __str__(self) -> str:
+        return self.character
+
+    def cursor_logic(self):
+        self.set_cursor_to_character()
+        self.set_characted_to_cursor()
+
+    def update(self):
+        self.cursor_logic()
+        
+
 
 class User(Composite):
     def __init__(self):
@@ -89,6 +116,16 @@ class Position2D:
     def __init__(self, x = 0, y = 0):
         self.x = x
         self.y = y
+
+    def move(self, direction):
+        if direction == "w":
+            self.y -= 1
+        elif direction == "s":
+            self.y += 1
+        elif direction == "a":
+            self.x -= 1
+        elif direction == "d":
+            self.x += 1
     
     def get_position(self):
         return [self.x, self.y]
@@ -118,14 +155,15 @@ class Map:
         for x_tile in range(size_x):
             self.map.append([])
             for y_tile in range(size_y):
+                composite = Composite()
                 self.map[x_tile].append([])
-                self.map[x_tile][y_tile] = "X"
+                self.map[x_tile][y_tile] = composite
 
     def get_string_char_map(self) -> str:
         map: str = ""
         for x in range(self.size_x):
             for y in range(self.size_y):
-                if y % 10 == 0:
+                if y % self.size_x == 0:
                    map += "\n" 
                 map += str(self.map[x][y])
 
@@ -139,10 +177,8 @@ class Map:
 def run():
     map = Map()
     map.create_map()
-    print(map.get_string_char_map())
     user = User()
     map.insert_on_map(user)
-    print(map.get_string_char_map())
     sim = Simulation(map)
     sim.loop()
 
