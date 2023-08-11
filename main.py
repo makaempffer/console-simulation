@@ -4,6 +4,7 @@ import os
 
 # Idea file system for libraries and docs and instant project integration so it makes people reuse their own code and do better docs/code
 # new Class of simulation that executes and action/triggered/constant simulation, as in actions_performed, key_pressed, every x time/ticks.
+# TODO FIX MOVEMENT
 
 class Simulation:
     def __init__(self, map):
@@ -26,7 +27,8 @@ class Simulation:
             self.is_manual = True
             self.step_counter = 0
 
-
+    def move_cursor(self, dir):
+        self.cursor_pos.move(dir)
 
 
     def stop_simulation(self):
@@ -34,6 +36,15 @@ class Simulation:
 
     def count_simulation_steps(self):
         self.step_counter += 1 
+
+    def set_cursor(self):
+        print("[CURSOR] -> UPDATE.")
+        for entity in self.map.entities:
+            if entity.position.x == self.cursor_pos.x and entity.position.y == self.cursor_pos.y:
+                print("[CURSOR] -> CURSOR SET.")
+                entity.is_cursor_selected = True
+            else:
+                entity.is_cursor_selected = False
 
     def get_events(self):
         if not self.is_manual:
@@ -44,8 +55,12 @@ class Simulation:
         if user_input == "exit":
             self.is_running = False
 
-        if user_input == "in":
+        elif user_input == "in":
             self.is_manual = not self.is_manual
+
+        self.move_cursor(user_input)
+        
+
 
     def render(self):
         os.system('cls||clear')
@@ -54,11 +69,13 @@ class Simulation:
         print("[WASD] - MOVE CURSOR TO\n[R] - SET CURSOR AS RESOURCE AREA\n[H] - SET HOME AREA\n[IN] - SWITCH INPUT NEED\n[EXIT] TYPE EXIT TO CLOSE")
    
     def get_input(self) -> str:
-    
         return input()
 
     def logic(self):
-        pass
+        for entity in self.map.entities:
+            entity.update()
+        self.set_cursor()
+
 
     def loop(self):
         while self.is_running:
@@ -75,6 +92,7 @@ class Composite:
         self.character = tile_character
         self.is_cursor_selected = False
         self.stored_character = tile_character
+        self.to_call_function = None
 
     def set_characted_to_cursor(self):
         if self.is_cursor_selected:
@@ -96,6 +114,9 @@ class Composite:
 
     def update(self):
         self.cursor_logic()
+
+    def move_to_dir(self, dir):
+        self.position.move(dir)
         
 
 
@@ -113,7 +134,7 @@ class User(Composite):
 
     
 class Position2D:
-    def __init__(self, x = 0, y = 0):
+    def __init__(self, x: int = 0, y: int = 0) -> None:
         self.x = x
         self.y = y
 
@@ -126,6 +147,8 @@ class Position2D:
             self.x -= 1
         elif direction == "d":
             self.x += 1
+        print(self.x, self.y)
+
     
     def get_position(self):
         return [self.x, self.y]
@@ -140,6 +163,7 @@ class Map:
         self.size_y = MAP_SIZE_Y
         self.map = []
         self.users = []
+        self.entities = []
 
 
     def add_user(self, user: User):
@@ -147,6 +171,7 @@ class Map:
 
     def insert_on_map(self, composite):
         self.map[composite.position.x][composite.position.y] = composite
+        self.entities.append(composite)
 
     def create_map(self, size_x = MAP_SIZE_X, size_y = MAP_SIZE_Y):
         self.size_x = size_x
@@ -156,6 +181,8 @@ class Map:
             self.map.append([])
             for y_tile in range(size_y):
                 composite = Composite()
+                composite.position.set_position(x_tile, y_tile)
+                self.entities.append(composite)
                 self.map[x_tile].append([])
                 self.map[x_tile][y_tile] = composite
 
