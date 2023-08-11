@@ -5,6 +5,7 @@ import os
 # Idea file system for libraries and docs and instant project integration so it makes people reuse their own code and do better docs/code
 # new Class of simulation that executes and action/triggered/constant simulation, as in actions_performed, key_pressed, every x time/ticks.
 # TODO FIX MOVEMENT
+# TODO FIX UPDATE/RENDER ORDER
 
 class Simulation:
     def __init__(self, map):
@@ -29,7 +30,6 @@ class Simulation:
 
     def move_cursor(self, dir):
         self.cursor_pos.move(dir)
-
 
     def stop_simulation(self):
         self.is_running = False
@@ -59,7 +59,6 @@ class Simulation:
             self.is_manual = not self.is_manual
 
         self.move_cursor(user_input)
-        
 
 
     def render(self):
@@ -79,9 +78,9 @@ class Simulation:
 
     def loop(self):
         while self.is_running:
+            self.logic()
             self.render()
             self.get_events()
-            self.logic()
             self.sim_logic()
             self.tick()
         os.system('exit')
@@ -103,8 +102,6 @@ class Composite:
         if self.is_cursor_selected == False:
             self.character = self.stored_character
 
-    ### TODO CURSOR HOVER DETECTION AND RESPONSE
-
     def __str__(self) -> str:
         return self.character
 
@@ -118,7 +115,6 @@ class Composite:
     def move_to_dir(self, dir):
         self.position.move(dir)
         
-
 
 class User(Composite):
     def __init__(self):
@@ -140,13 +136,13 @@ class Position2D:
 
     def move(self, direction):
         if direction == "w":
-            self.y -= 1
-        elif direction == "s":
-            self.y += 1
-        elif direction == "a":
             self.x -= 1
-        elif direction == "d":
+        elif direction == "s":
             self.x += 1
+        elif direction == "a":
+            self.y -= 1
+        elif direction == "d":
+            self.y += 1
         print(self.x, self.y)
 
     
@@ -164,7 +160,6 @@ class Map:
         self.map = []
         self.users = []
         self.entities = []
-
 
     def add_user(self, user: User):
         self.users.append(user)
@@ -193,10 +188,7 @@ class Map:
                 if y % self.size_x == 0:
                    map += "\n" 
                 map += str(self.map[x][y])
-
         return map
-
-
 
     def get_map(self):
         return self.map
