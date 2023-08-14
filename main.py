@@ -1,5 +1,4 @@
 from settings import *
-from time import sleep
 import os
 
 # Idea file system for libraries and docs and instant project integration so it makes people reuse their own code and do better docs/code
@@ -37,9 +36,14 @@ class Simulation:
         pass
 
     def get_map_entities(self):
-    # TODO # Gets all the entities in the map
-        pass 
-    
+        return self.map.entities
+
+    def get_selected_entity(self):
+        for entity in self.get_map_entities():
+            if entity.is_cursor_selected and self.selected_object != entity:
+                self.selected_object = entity
+                return 
+        
     def sim_logic(self):
         if self.is_manual == False:
             self.count_simulation_steps()
@@ -73,8 +77,8 @@ class Simulation:
         if not self.is_manual:
             return
         user_input: str = self.get_input().lower()
-        os.system('cls||clear')
         print("[INPUT] - COMMAND:", user_input)
+        self.get_selected_entity()
         if user_input == "exit":
             self.is_running = False
 
@@ -89,7 +93,8 @@ class Simulation:
         print(str(self.map.get_string_char_map()))
         print("\n[CONFIG] - MANUAL? ", str(self.is_manual))
         print("[WASD] - MOVE CURSOR TO\n[R] - SET CURSOR AS RESOURCE AREA\n[H] - SET HOME AREA\n[IN] - SWITCH INPUT NEED\n[EXIT] TYPE EXIT TO CLOSE")
-        print("[OBJ] CURRENT SELECTED: ", self.selected_object)
+        if self.selected_object:
+            print("[OBJ] -> (BUFFERED): ", self.selected_object.get_orig_character())
    
     def get_input(self) -> str:
         return input()
@@ -114,6 +119,7 @@ class Composite:
         self.character = tile_character
         self.is_cursor_selected = False
         self.stored_character = tile_character
+        self.NATIVE_CHARACTER = tile_character
         self.to_call_function = None
 
     def set_characted_to_cursor(self):
@@ -126,6 +132,9 @@ class Composite:
 
     def do_action_on_selected(self):
         print("[OBJ] -> PERFORM ACTION.")
+
+    def get_orig_character(self):
+        return self.NATIVE_CHARACTER
     
 
     def set_cursor_to_character(self):
@@ -151,6 +160,9 @@ class User(Composite):
         Composite.__init__(self, "o")
         self.position.x = 5
         self.position.y = 5
+
+    def get_orig_character(self):
+        return self.NATIVE_CHARACTER
 
     def get_character(self):
         return self.character
@@ -179,7 +191,7 @@ class Position2D:
             self.y -= 3
         elif direction == "d":
             self.y += 1
-        elif direction == "":
+        elif direction == "dd":
             self.y += 3
         print(self.x, self.y)
 
