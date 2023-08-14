@@ -4,29 +4,51 @@ import os
 
 # Idea file system for libraries and docs and instant project integration so it makes people reuse their own code and do better docs/code
 # new Class of simulation that executes and action/triggered/constant simulation, as in actions_performed, key_pressed, every x time/ticks.
+
 # TODO FIX MOVEMENT
 # TODO FIX UPDATE/RENDER ORDER
+# TODO SOON - SET FILE HIERARCHY
+
+# EMPTY STRING INPUT KEEPS THE COMPOSITE AS CURRENTSELECTED -> FIX:? MAYBE "" IS BEING SET SOMEWHERE AND NO CHECK IS DONE
 
 class Simulation:
     def __init__(self, map):
-        self.sim_time_s = 1 
         self.is_running = True
         self.map: Map = map
+        self.map_stack = [Map]
         self.action_stack = []
         self.is_manual: bool = True
         self.step_counter: int = 0
         self.cursor_pos = Position2D()
+        self.selected_object = None
     
-    def tick(self):
-        sleep(self.sim_time_s)
+    def set_map(self, new_map):
+        if self.map != None:
+            self.map = new_map
+            if new_map not in self.map_stack:
+                self.map_stack.insert(0, new_map)
 
+    def prev_map(self):
+    # TODO and asign map
+        pass
+
+    def next_map(self):
+    # TODO
+        pass
+
+    def get_map_entities(self):
+    # TODO # Gets all the entities in the map
+        pass 
+    
     def sim_logic(self):
         if self.is_manual == False:
             self.count_simulation_steps()
             print("\n[SIM] - STEPS ->", str(self.step_counter))
+            return
         if self.is_manual == False and self.step_counter >= SIMULATION_DEFAULT_RUNS:
             self.is_manual = True
             self.step_counter = 0
+
 
     def move_cursor(self, dir):
         self.cursor_pos.move(dir)
@@ -36,6 +58,7 @@ class Simulation:
 
     def count_simulation_steps(self):
         self.step_counter += 1 
+
 
     def set_cursor(self):
         print("[CURSOR] -> UPDATE.")
@@ -66,11 +89,12 @@ class Simulation:
         print(str(self.map.get_string_char_map()))
         print("\n[CONFIG] - MANUAL? ", str(self.is_manual))
         print("[WASD] - MOVE CURSOR TO\n[R] - SET CURSOR AS RESOURCE AREA\n[H] - SET HOME AREA\n[IN] - SWITCH INPUT NEED\n[EXIT] TYPE EXIT TO CLOSE")
+        print("[OBJ] CURRENT SELECTED: ", self.selected_object)
    
     def get_input(self) -> str:
         return input()
 
-    def logic(self):
+    def entity_update(self):
         for entity in self.map.entities:
             entity.update()
         self.set_cursor()
@@ -78,11 +102,10 @@ class Simulation:
 
     def loop(self):
         while self.is_running:
-            self.logic()
-            self.render()
             self.get_events()
-            self.sim_logic()
-            self.tick()
+            self.entity_update()
+            self.render()
+            # self.sim_logic()
         os.system('exit')
 
 class Composite:
@@ -94,9 +117,16 @@ class Composite:
         self.to_call_function = None
 
     def set_characted_to_cursor(self):
-        if self.is_cursor_selected:
+        if self.is_cursor_selected and self.character != "#":
             self.stored_character = self.character
             self.character = "#"
+        elif self.is_cursor_selected and self.character == "#":
+            # TODO TRIGGER SELECTED ACTION
+            self.do_action_on_selected()
+
+    def do_action_on_selected(self):
+        print("[OBJ] -> PERFORM ACTION.")
+    
 
     def set_cursor_to_character(self):
         if self.is_cursor_selected == False:
@@ -137,12 +167,20 @@ class Position2D:
     def move(self, direction):
         if direction == "w":
             self.x -= 1
+        elif direction == "ww":
+            self.x -= 3
         elif direction == "s":
             self.x += 1
+        elif direction == "ss":
+            self.x += 3
         elif direction == "a":
             self.y -= 1
+        elif direction == "aa":
+            self.y -= 3
         elif direction == "d":
             self.y += 1
+        elif direction == "":
+            self.y += 3
         print(self.x, self.y)
 
     
